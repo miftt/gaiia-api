@@ -1,4 +1,4 @@
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean
   data?: T
   message: string
@@ -32,9 +32,8 @@ export const createApiResponse = <T>(
 
 export const createErrorResponse = (
   message: string,
-  error: string,
-  status: number = 400
-): ApiResponse => ({
+  error: string
+): ApiResponse<unknown> => ({
   success: false,
   message,
   error
