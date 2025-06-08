@@ -19,7 +19,7 @@ export default function Home() {
             </p>
             <div className="bg-gray-50 p-4 rounded-lg mb-4">
               <h3 className="text-lg font-medium text-gray-900 mb-2">Base URL</h3>
-              <code className="text-sm bg-gray-100 p-2 rounded text-gray-800">https://api.gaiia.com/v1</code>
+              <code className="text-sm bg-gray-100 p-2 rounded text-gray-800">https://ecommerce-gaiia-api.vercel.app/v1</code>
             </div>
           </div>
         </section>
@@ -53,7 +53,7 @@ Content-Type: application/json`}
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
                   <h4 className="text-lg font-medium text-gray-900 mb-2">Request</h4>
                   <pre className="text-sm bg-gray-100 p-3 rounded overflow-x-auto text-gray-800">
-{`curl -X GET https://api.gaiia.com/v1/products \
+{`curl -X GET https://ecommerce-gaiia-api.vercel.app/v1/products \
 -H "Authorization: Bearer YOUR_API_KEY"`}
                   </pre>
                 </div>
@@ -93,7 +93,7 @@ Content-Type: application/json`}
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
                   <h4 className="text-lg font-medium text-gray-900 mb-2">Request</h4>
                   <pre className="text-sm bg-gray-100 p-3 rounded overflow-x-auto text-gray-800">
-{`curl -X GET https://api.gaiia.com/v1/categories \
+{`curl -X GET https://ecommerce-gaiia-api.vercel.app/v1/categories \
 -H "Authorization: Bearer YOUR_API_KEY"`}
                   </pre>
                 </div>
@@ -131,7 +131,7 @@ Content-Type: application/json`}
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
                   <h4 className="text-lg font-medium text-gray-900 mb-2">Request</h4>
                   <pre className="text-sm bg-gray-100 p-3 rounded overflow-x-auto text-gray-800">
-{`curl -X GET https://api.gaiia.com/v1/brands \
+{`curl -X GET https://ecommerce-gaiia-api.vercel.app/v1/brands \
 -H "Authorization: Bearer YOUR_API_KEY"`}
                   </pre>
                 </div>
@@ -170,7 +170,7 @@ Content-Type: application/json`}
                 <div className="bg-gray-50 p-4 rounded-lg mb-4">
                   <h4 className="text-lg font-medium text-gray-900 mb-2">Request</h4>
                   <pre className="text-sm bg-gray-100 p-3 rounded overflow-x-auto text-gray-800">
-{`curl -X GET https://api.gaiia.com/v1/customers \
+{`curl -X GET https://ecommerce-gaiia-api.vercel.app/v1/customers \
 -H "Authorization: Bearer YOUR_API_KEY"`}
                   </pre>
                 </div>
