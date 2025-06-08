@@ -1,5 +1,5 @@
 import { Customer } from "@/types/customer/user";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 const customers: Customer[] = [
   {
@@ -49,6 +49,6 @@ const customers: Customer[] = [
   }
 ];
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET() {
     return NextResponse.json(customers);
 }

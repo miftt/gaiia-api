@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { Category } from "@/types/category/category";
 
 const categories: Category[] = [
@@ -39,6 +39,6 @@ const categories: Category[] = [
   }
 ];
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET() {
   return NextResponse.json(categories);
 }

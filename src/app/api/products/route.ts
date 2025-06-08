@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Product } from "@/types/product/product";
 
 const products: Product[] = [
@@ -60,6 +60,6 @@ const products: Product[] = [
 ];
 
 
-export async function GET(req: NextRequest, res: NextResponse) {
+export async function GET() {
     return NextResponse.json(products);
 }
