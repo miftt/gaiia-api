@@ -2,7 +2,7 @@ import { Brand } from "@/types/brand/brand";
 import { NextResponse } from "next/server";
 
 
-export const brands: Brand[] = [
+const brands: Brand[] = [
   {
     id: "brand-01",
     name: "Nike",
