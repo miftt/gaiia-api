@@ -1,16 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createApiResponse, createErrorResponse } from '@/types/api'
 import bcrypt from 'bcrypt'
+import { Customer } from '@/types/customer/user'
 
 // Mock data - replace with your database
-const customers = [
+const customers: Customer[] = [
   {
     id: "cust-01",
     name: "Asep Sudrajat",
     email: "asep.sudrajat@email.com",
     numberPhone: "+6281234567001",
     address: "Jl. Cikuray No. 5, Garut",
-    password: "", // hashed password will be stored here
+    password: "asep123",
     createdAt: "2025-06-08T09:00:00Z",
     updatedAt: "2025-06-08T09:00:00Z"
   },
@@ -20,6 +21,7 @@ const customers = [
     email: "euis.komariah@email.com",
     numberPhone: "+6281234567002",
     address: "Jl. Siliwangi No. 12, Tasikmalaya",
+    password: "euis123", // hashed password will be stored here
     createdAt: "2025-06-08T09:05:00Z",
     updatedAt: "2025-06-08T09:05:00Z"
   },
@@ -29,6 +31,7 @@ const customers = [
     email: "ujang.rohman@email.com",
     numberPhone: "+6281234567003",
     address: "Jl. Kiaracondong No. 88, Bandung",
+    password: "ujang123", // hashed password will be stored here
     createdAt: "2025-06-08T09:10:00Z",
     updatedAt: "2025-06-08T09:10:00Z"
   },
@@ -38,6 +41,7 @@ const customers = [
     email: "neneng.nuraeni@email.com",
     numberPhone: "+6281234567004",
     address: "Jl. Cibaduyut No. 3, Bandung",
+    password: "neneng123", // hashed password will be stored here
     createdAt: "2025-06-08T09:15:00Z",
     updatedAt: "2025-06-08T09:15:00Z"
   },
@@ -47,6 +51,7 @@ const customers = [
     email: "dadan.saputra@email.com",
     numberPhone: "+6281234567005",
     address: "Jl. Galunggung No. 7, Sumedang",
+    password: "dadan123", // hashed password will be stored here
     createdAt: "2025-06-08T09:20:00Z",
     updatedAt: "2025-06-08T09:20:00Z"
   }
@@ -82,7 +87,7 @@ export async function POST(request: Request) {
       }
 
       // Find customer by email
-      const customer = customers.find(c => c.email === body.email)
+      const customer: Customer | undefined = customers.find(c => c.email === body.email)
       if (!customer || !customer.password) {
         return NextResponse.json(
           createErrorResponse('Authentication failed', 'Invalid email or password'),
@@ -100,7 +105,8 @@ export async function POST(request: Request) {
       }
 
       // Remove password from response
-      const { password, ...customerWithoutPassword } = customer
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password: _password, ...customerWithoutPassword } = customer
 
       return NextResponse.json(
         createApiResponse(customerWithoutPassword, 'Login successful'),
@@ -164,7 +170,8 @@ export async function POST(request: Request) {
     customers.push(newCustomer)
 
     // Remove password from response
-    const { password, ...customerWithoutPassword } = newCustomer
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _password, ...customerWithoutPassword } = newCustomer
 
     return NextResponse.json(
       createApiResponse(customerWithoutPassword, 'Customer account created successfully'),

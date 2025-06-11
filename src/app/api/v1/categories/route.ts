@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createApiResponse, createErrorResponse } from '@/types/api'
+import { Category } from '@/types/category/category'
 
 // Mock data - replace with your database
-const categories = [
+const categories: Category[] = [
   {
     id: "cat-01",
     name: "Sneakers Shoes",

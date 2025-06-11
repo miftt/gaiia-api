@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { createApiResponse, createErrorResponse } from '@/types/api'
+import { Brand } from '@/types/brand/brand'
 
 // Mock data - replace with your database
-const brands = [
+const brands: Brand[] = [
   {
     id: "brand-01",
     name: "Nike",
