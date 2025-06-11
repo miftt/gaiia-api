@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createApiResponse, createErrorResponse } from '@/types/api'
 import bcrypt from 'bcrypt'
-import { customers } from '../data'
+import { supabase } from '@/lib/supabase'
 
 export async function POST(request: Request) {
   try {
@@ -25,7 +25,12 @@ export async function POST(request: Request) {
     }
 
     // Check if email already exists
-    const existingCustomer = customers.find(customer => customer.email === body.email)
+    const { data: existingCustomer, error: checkError } = await supabase
+      .from('customers')
+      .select('id')
+      .eq('email', body.email)
+      .single()
+
     if (existingCustomer) {
       return NextResponse.json(
         createErrorResponse('Invalid request', 'Email already registered'),
@@ -38,26 +43,26 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(body.password, saltRounds)
 
     // Create new customer
-    const newCustomer = {
-      id: `cust-${Date.now()}`,
-      name: body.name,
-      email: body.email,
-      numberPhone: body.numberPhone || '',
-      address: body.address || '',
-      password: hashedPassword,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+    const { data: newCustomer, error } = await supabase
+      .from('customers')
+      .insert([
+        {
+          name: body.name,
+          email: body.email,
+          numberPhone: body.numberPhone || '',
+          address: body.address || '',
+          password: hashedPassword
+        }
+      ])
+      .select('id, name, email, numberPhone, address, createdAt, updatedAt')
+      .single()
+
+    if (error) {
+      throw error
     }
 
-    // In a real application, you would save this to a database
-    customers.push(newCustomer)
-
-    // Remove password from response
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _password, ...customerWithoutPassword } = newCustomer
-
     return NextResponse.json(
-      createApiResponse(customerWithoutPassword, 'Customer account created successfully'),
+      createApiResponse(newCustomer, 'Customer account created successfully'),
       { status: 201 }
     )
   } catch (error) {

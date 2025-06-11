@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createApiResponse, createErrorResponse } from '@/types/api'
 import bcrypt from 'bcrypt'
-import { customers } from '../data'
+import { supabase } from '@/lib/supabase'
 
 export async function POST(request: Request) {
   try {
@@ -16,8 +16,13 @@ export async function POST(request: Request) {
     }
 
     // Find customer by email
-    const customer = customers.find(c => c.email === body.email)
-    if (!customer || !customer.password) {
+    const { data: customer, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('email', body.email)
+      .single()
+
+    if (error || !customer) {
       return NextResponse.json(
         createErrorResponse('Authentication failed', 'Invalid email or password'),
         { status: 401 }
