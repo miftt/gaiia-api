@@ -223,7 +223,6 @@ const products = [
     "createdAt": "2025-06-08T10:00:00Z",
     "updatedAt": "2025-06-11T12:06:53Z"
   },
-  
 ]
 
 export async function GET() {
