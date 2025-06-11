@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createApiResponse, createErrorResponse } from '@/types/api'
+import bcrypt from 'bcrypt'
 
 // Mock data - replace with your database
 const customers = [
@@ -9,6 +10,7 @@ const customers = [
     email: "asep.sudrajat@email.com",
     numberPhone: "+6281234567001",
     address: "Jl. Cikuray No. 5, Garut",
+    password: "", // hashed password will be stored here
     createdAt: "2025-06-08T09:00:00Z",
     updatedAt: "2025-06-08T09:00:00Z"
   },
@@ -64,13 +66,62 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const { pathname } = new URL(request.url)
+  
+  // Handle login
+  if (pathname.endsWith('/login')) {
+    try {
+      const body = await request.json()
+      
+      // Validate request body
+      if (!body.email || !body.password) {
+        return NextResponse.json(
+          createErrorResponse('Invalid request', 'Email and password are required'),
+          { status: 400 }
+        )
+      }
+
+      // Find customer by email
+      const customer = customers.find(c => c.email === body.email)
+      if (!customer || !customer.password) {
+        return NextResponse.json(
+          createErrorResponse('Authentication failed', 'Invalid email or password'),
+          { status: 401 }
+        )
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(body.password, customer.password)
+      if (!isPasswordValid) {
+        return NextResponse.json(
+          createErrorResponse('Authentication failed', 'Invalid email or password'),
+          { status: 401 }
+        )
+      }
+
+      // Remove password from response
+      const { password, ...customerWithoutPassword } = customer
+
+      return NextResponse.json(
+        createApiResponse(customerWithoutPassword, 'Login successful'),
+        { status: 200 }
+      )
+    } catch (error) {
+      return NextResponse.json(
+        createErrorResponse('Login failed', error instanceof Error ? error.message : 'Unknown error'),
+        { status: 500 }
+      )
+    }
+  }
+  
+  // Handle registration (existing code)
   try {
     const body = await request.json()
     
     // Validate request body
-    if (!body.name || !body.email) {
+    if (!body.name || !body.email || !body.password) {
       return NextResponse.json(
-        createErrorResponse('Invalid request', 'Name and email are required'),
+        createErrorResponse('Invalid request', 'Name, email, and password are required'),
         { status: 400 }
       )
     }
@@ -84,16 +135,39 @@ export async function POST(request: Request) {
       )
     }
 
+    // Check if email already exists
+    const existingCustomer = customers.find(customer => customer.email === body.email)
+    if (existingCustomer) {
+      return NextResponse.json(
+        createErrorResponse('Invalid request', 'Email already registered'),
+        { status: 400 }
+      )
+    }
+
+    // Hash the password
+    const saltRounds = 10
+    const hashedPassword = await bcrypt.hash(body.password, saltRounds)
+
     // Create new customer
     const newCustomer = {
       id: `cust-${Date.now()}`,
-      ...body,
+      name: body.name,
+      email: body.email,
+      numberPhone: body.numberPhone || '',
+      address: body.address || '',
+      password: hashedPassword,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
 
+    // In a real application, you would save this to a database
+    customers.push(newCustomer)
+
+    // Remove password from response
+    const { password, ...customerWithoutPassword } = newCustomer
+
     return NextResponse.json(
-      createApiResponse(newCustomer, 'Customer created successfully'),
+      createApiResponse(customerWithoutPassword, 'Customer account created successfully'),
       { status: 201 }
     )
   } catch (error) {
