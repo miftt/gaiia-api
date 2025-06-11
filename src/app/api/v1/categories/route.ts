@@ -1,65 +1,40 @@
 import { NextResponse } from 'next/server'
 import { createApiResponse, createErrorResponse } from '@/types/api'
-import { Category } from '@/types/category/category'
+import { supabaseAdmin } from '@/lib/supabase'
+import { v4 as uuidv4 } from 'uuid'
 
-// Mock data - replace with your database
-const categories: Category[] = [
-  {
-    id: "cat-01",
-    name: "Sneakers Shoes",
-    description: "Stylish and comfortable shoes for everyday wear.",
-    imageUrl: "https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/5684ad56-6db6-4b07-baf2-ecc5da4b9a4c/air-force-1-07-mens-shoes-CW2288-111.png",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "cat-02",
-    name: "Boots Shoes",
-    description: "Durable and rugged footwear suitable for rough terrain or fashion-forward outfits.",
-    imageUrl: "https://example.com/boots-example.png",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "cat-03",
-    name: "Sandals",
-    description: "Open footwear ideal for warm weather and casual comfort.",
-    imageUrl: "https://example.com/sandals-example.png",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "cat-04",
-    name: "Sport Shoes",
-    description: "Shoes designed to support performance in various sports and physical activities.",
-    imageUrl: "https://example.com/sport-shoes-example.png",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "cat-05",
-    name: "Flat Shoes",
-    description: "Simple and elegant footwear perfect for daily activities and formal events.",
-    imageUrl: "https://example.com/flat-shoes-example.png",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "cat-06",
-    name: "Casual Shoes",
-    description: "Comfortable and relaxed footwear suitable for informal occasions.",
-    imageUrl: "https://example.com/casual-shoes-example.png",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  }
-]
-
-export async function GET() {
+// GET /api/v1/categories - Get all categories
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    const query = supabaseAdmin
+      .from('categories')
+      .select('*')
+    
+    if (id) {
+      query.eq('id', id)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      throw error
+    }
+
+    if (id && !data?.length) {
+      return NextResponse.json(
+        createErrorResponse('Not Found', 'Category not found'),
+        { status: 404 }
+      )
+    }
+
     return NextResponse.json(
-      createApiResponse(categories, 'Categories retrieved successfully')
+      createApiResponse(data, 'Categories retrieved successfully')
     )
   } catch (error) {
+    console.error('Error fetching categories:', error)
     return NextResponse.json(
       createErrorResponse('Failed to retrieve categories', error instanceof Error ? error.message : 'Unknown error'),
       { status: 500 }
@@ -67,10 +42,11 @@ export async function GET() {
   }
 }
 
+// POST /api/v1/categories - Create new category
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    
+
     // Validate request body
     if (!body.name) {
       return NextResponse.json(
@@ -79,19 +55,32 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create new category
-    const newCategory = {
-      id: `cat-${Date.now()}`,
-      ...body,
+    const category = {
+      id: uuidv4(),
+      name: body.name,
+      description: body.description || '',
+      imageUrl: body.imageUrl || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
 
+    const { data, error } = await supabaseAdmin
+      .from('categories')
+      .insert([category])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Supabase error:', error)
+      throw error
+    }
+
     return NextResponse.json(
-      createApiResponse(newCategory, 'Category created successfully'),
+      createApiResponse(data, 'Category created successfully'),
       { status: 201 }
     )
   } catch (error) {
+    console.error('Error creating category:', error)
     return NextResponse.json(
       createErrorResponse('Failed to create category', error instanceof Error ? error.message : 'Unknown error'),
       { status: 500 }

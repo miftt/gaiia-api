@@ -1,101 +1,40 @@
 import { NextResponse } from 'next/server'
 import { createApiResponse, createErrorResponse } from '@/types/api'
-import { Brand } from '@/types/brand/brand'
+import { supabaseAdmin } from '@/lib/supabase'
+import { v4 as uuidv4 } from 'uuid'
 
-// Mock data - replace with your database
-const brands: Brand[] = [
-  {
-    id: "brand-01",
-    name: "Nike",
-    description: "American brand known for innovative sportswear and sneakers.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-02",
-    name: "Converse",
-    description: "Classic American brand famous for Chuck Taylor sneakers.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-03",
-    name: "Dr. Martens",
-    description: "British brand known for leather boots with iconic yellow stitching.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-04",
-    name: "Timberland",
-    description: "Rugged outdoor footwear brand famous for yellow boots.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-05",
-    name: "Crocs",
-    description: "Comfortable and lightweight clogs for casual use.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-06",
-    name: "Eiger",
-    description: "Indonesian brand known for outdoor gear and adventure footwear.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-07",
-    name: "Adidas",
-    description: "German sportswear brand with performance and lifestyle shoes.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-08",
-    name: "Asics",
-    description: "Japanese brand specializing in high-performance running shoes.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-09",
-    name: "Charles & Keith",
-    description: "Fashion brand known for stylish and elegant women's footwear.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-10",
-    name: "Zara",
-    description: "Fast-fashion brand offering trendy and chic women's shoes.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-11",
-    name: "Vans",
-    description: "Lifestyle and skateboarding brand with classic low-top sneakers.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  },
-  {
-    id: "brand-12",
-    name: "New Balance",
-    description: "Global brand known for comfort and durability in athletic shoes.",
-    createdAt: "2025-06-08T10:00:00Z",
-    updatedAt: "2025-06-08T10:00:00Z"
-  }
-]
-
-export async function GET() {
+// GET /api/v1/brands - Get all brands
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    const query = supabaseAdmin
+      .from('brands')
+      .select('*')
+    
+    if (id) {
+      query.eq('id', id)
+    }
+
+    const { data, error } = await query
+
+    if (error) {
+      throw error
+    }
+
+    if (id && !data?.length) {
+      return NextResponse.json(
+        createErrorResponse('Not Found', 'Brand not found'),
+        { status: 404 }
+      )
+    }
+
     return NextResponse.json(
-      createApiResponse(brands, 'Brands retrieved successfully')
+      createApiResponse(data, 'Brands retrieved successfully')
     )
   } catch (error) {
+    console.error('Error fetching brands:', error)
     return NextResponse.json(
       createErrorResponse('Failed to retrieve brands', error instanceof Error ? error.message : 'Unknown error'),
       { status: 500 }
@@ -103,10 +42,11 @@ export async function GET() {
   }
 }
 
+// POST /api/v1/brands - Create new brand
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    
+
     // Validate request body
     if (!body.name) {
       return NextResponse.json(
@@ -115,19 +55,31 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create new brand
-    const newBrand = {
-      id: `brand-${Date.now()}`,
-      ...body,
+    const brand = {
+      id: uuidv4(),
+      name: body.name,
+      description: body.description || '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
 
+    const { data, error } = await supabaseAdmin
+      .from('brands')
+      .insert([brand])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Supabase error:', error)
+      throw error
+    }
+
     return NextResponse.json(
-      createApiResponse(newBrand, 'Brand created successfully'),
+      createApiResponse(data, 'Brand created successfully'),
       { status: 201 }
     )
   } catch (error) {
+    console.error('Error creating brand:', error)
     return NextResponse.json(
       createErrorResponse('Failed to create brand', error instanceof Error ? error.message : 'Unknown error'),
       { status: 500 }
