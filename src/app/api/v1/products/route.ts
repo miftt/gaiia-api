@@ -10,6 +10,7 @@ export async function GET(request: Request) {
     const id = searchParams.get('id')
     const categoryId = searchParams.get('categoryId')
     const brandId = searchParams.get('brandId')
+    const productName = searchParams.get('productName')
 
     const query = supabaseAdmin
       .from('products')
@@ -38,6 +39,10 @@ export async function GET(request: Request) {
 
     if (brandId) {
       query.eq('brandId', brandId)
+    }
+
+    if (productName) {
+      query.ilike('productName', `%${productName}%`)
     }
 
     const { data, error } = await query
