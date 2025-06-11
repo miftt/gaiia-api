@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createApiResponse, createErrorResponse } from '@/types/api'
 import bcrypt from 'bcrypt'
-import { supabase } from '@/lib/supabase'
+import { supabaseAdmin } from '@/lib/supabase'
+import { v4 as uuidv4 } from 'uuid'
 
 export async function POST(request: Request) {
   try {
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
     }
 
     // Check if email already exists
-    const { data: existingCustomer, error: checkError } = await supabase
+    const { data: existingCustomer, error: checkError } = await supabaseAdmin
       .from('customers')
       .select('id')
       .eq('email', body.email)
@@ -43,21 +44,25 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(body.password, saltRounds)
 
     // Create new customer
-    const { data: newCustomer, error } = await supabase
+    const { data: newCustomer, error } = await supabaseAdmin
       .from('customers')
       .insert([
         {
+          id: uuidv4(),
           name: body.name,
           email: body.email,
           numberPhone: body.numberPhone || '',
           address: body.address || '',
-          password: hashedPassword
+          password: hashedPassword,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
         }
       ])
       .select('id, name, email, numberPhone, address, createdAt, updatedAt')
       .single()
 
     if (error) {
+      console.error('Supabase error:', error)
       throw error
     }
 
@@ -66,6 +71,7 @@ export async function POST(request: Request) {
       { status: 201 }
     )
   } catch (error) {
+    console.error('Registration error:', error)
     return NextResponse.json(
       createErrorResponse('Failed to create customer', error instanceof Error ? error.message : 'Unknown error'),
       { status: 500 }
